@@ -280,6 +280,10 @@ void Calculator::backspaceInputLineEdit()
     qDebug() << "function_backspaceInputLineEdit";
     if(infixExpression.length() > 1)
     {
+        if(isHasOperator)
+        {
+            isHasOperator = false;
+        }
         infixExpression.chop(1);
     }
     else
