@@ -152,12 +152,28 @@ void Calculator::keyPressEvent(QKeyEvent *event)
 
 double Calculator::calculte()
 {
-    if(isHasOperator)
+    if(isHasOperator || infixExpression.back() == '.')
     {
         infixExpression.chop(1);
     }
+    qDebug() << infixExpression;
+
     displayLineEdit->setText(infixExpression + tr("="));
+
     transform_infix_to_postfix();
+
+    if(postfix.size() == 1)
+    {
+        result = postfix.at(0).first.toDouble();
+
+        isHasOperator = false;
+        isHasPoint = false;
+        infixExpression = QString::number(result);
+        postfixExpression.clear();
+        postfix.clear();
+        inputLineEdit->setText(QString::number(result));
+        return result;
+    }
 
     for(int i = 0; i < postfix.size(); ++i)
     {
@@ -198,6 +214,8 @@ double Calculator::calculte()
         }
     }
 
+    isHasOperator = false;
+    isHasPoint = false;
     infixExpression = QString::number(result);
     postfixExpression.clear();
     postfix.clear();
@@ -231,6 +249,7 @@ void Calculator::inputChar(const QChar ch)
             infixExpression.chop(1);
             infixExpression += ch;
             isHasPoint = true;
+            isHasOperator = false;
         }
         else
         {
@@ -239,14 +258,14 @@ void Calculator::inputChar(const QChar ch)
             isHasPoint = false;
         }
     }
-    //如果上一个字符是数字，则如下：
+    //如果上一个字符是数字或小数点，则如下：
     else
     {
         if(isDidit(ch))
         {
             infixExpression += ch;
         }
-        else if(ch == '.' && !isHasPoint)
+        else if(!isHasPoint && ch == '.')
         {
             infixExpression += ch;
             isHasPoint =true;
@@ -254,6 +273,13 @@ void Calculator::inputChar(const QChar ch)
         else if(isHasPoint && ch == '.')
         {
             return;
+        }
+        else if(infixExpression.back() == '.')
+        {
+            infixExpression.chop(1);
+            isHasPoint = false;
+            isHasOperator = true;
+            infixExpression += ch;
         }
         else
         {

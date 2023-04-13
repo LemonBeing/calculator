@@ -67,10 +67,10 @@ private:
     bool isHasPoint;
     bool isHasOperator;
     QString infixExpression;//中缀表达式
-    QList<QPair<QString, int>> postfix;
+    QList<QPair<QString, int>> postfix; //后缀表达式，同时用int值记录该值是数字还是操作符
     QString postfixExpression;//后缀表达式
-    QStack<double> numStack;
-    QStack<QChar> operatorStack;
+    QStack<double> numStack;    //数字存储栈
+    QStack<QChar> operatorStack;    //操作符存储栈
     double result;
 
     QMap<QChar, int> op_precedence;
