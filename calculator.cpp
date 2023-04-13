@@ -91,12 +91,17 @@ Calculator::Calculator(QWidget *parent)
 
     isHasPoint = false;
     isHasOperator = false;
-    infixExpression = "";
+    infixExpression = "0";
     op_precedence.insert('+', 0);
     op_precedence['-'] = 0;
     op_precedence['*'] = 1;
     op_precedence['/'] = 1;
     setLayout(mainLayout);
+
+    usefulChar = {Qt::Key_0, Qt::Key_1, Qt::Key_2, Qt::Key_3, Qt::Key_4,
+                  Qt::Key_5, Qt::Key_6, Qt::Key_7, Qt::Key_8, Qt::Key_9,
+                  Qt::Key_Plus, Qt::Key_Minus, Qt::Key_Asterisk, Qt::Key_Slash,
+                  Qt::Key_Period, Qt::Key_Backspace, Qt::Key_Return, Qt::Key_Enter};
 
     connect(zeroPushButton, &QPushButton::clicked, this, [=](){ inputChar('0'); });
     connect(onePushButton,&QPushButton::clicked, this, [=](){ inputChar('1'); });
@@ -124,10 +129,11 @@ Calculator::Calculator(QWidget *parent)
 
 void Calculator::keyPressEvent(QKeyEvent *event)
 {
-    qDebug() << "keypreesEvent";
+    if(!usefulChar.contains(event->key()))
+        return;
+
     if(event->key() == Qt::Key_Backspace)
     {
-        qDebug() << "Key_Backspace";
         backspaceInputLineEdit();
     }
     else if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
@@ -220,6 +226,12 @@ void Calculator::inputChar(const QChar ch)
         {
             return;
         }
+        else if(!isHasPoint && ch == '.')
+        {
+            infixExpression.chop(1);
+            infixExpression += ch;
+            isHasPoint = true;
+        }
         else
         {
             infixExpression.chop(1);
@@ -233,6 +245,11 @@ void Calculator::inputChar(const QChar ch)
         if(isDidit(ch))
         {
             infixExpression += ch;
+        }
+        else if(ch == '.' && !isHasPoint)
+        {
+            infixExpression += ch;
+            isHasPoint =true;
         }
         else if(isHasPoint && ch == '.')
         {
@@ -255,16 +272,16 @@ void Calculator::setFirstChar(const QChar ch)
         {
             infixExpression.clear();
         }
-        preChar = ch;
         infixExpression += ch;
     }
     else
     {
         if(ch == '.')
+        {
             isHasPoint = true;
+        }
         isHasOperator = true;
-        preChar = '.';
-        infixExpression = "0.";
+        infixExpression += ch;
     }
     inputLineEdit->setText(infixExpression);
 }
@@ -277,18 +294,38 @@ void Calculator::clearInputLineEdit()
 
 void Calculator::backspaceInputLineEdit()
 {
-    qDebug() << "function_backspaceInputLineEdit";
-    if(infixExpression.length() > 1)
-    {
-        if(isHasOperator)
-        {
-            isHasOperator = false;
-        }
-        infixExpression.chop(1);
-    }
-    else
+    if(infixExpression.length() <= 1)
     {
         infixExpression = "0";
+        inputLineEdit->setText(infixExpression);
+        return;
+    }
+
+    if(isHasOperator)
+    {
+        isHasOperator = false;
+        infixExpression.chop(1);
+        inputLineEdit->setText(infixExpression);
+        return;
+    }
+
+    if(infixExpression.back() == '.')
+    {
+        isHasPoint = false;
+        infixExpression.chop(1);
+        inputLineEdit->setText(infixExpression);
+        return;
+    }
+
+    infixExpression.chop(1);
+    if(!isDidit(infixExpression.back()) && infixExpression.back() != '.')
+    {
+        isHasOperator = true;
+    }
+    else if(infixExpression.back() == '.')
+    {
+        infixExpression.chop(1);
+        isHasPoint = false;
     }
     inputLineEdit->setText(infixExpression);
 }

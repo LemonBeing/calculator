@@ -66,7 +66,6 @@ private:
 
     bool isHasPoint;
     bool isHasOperator;
-    QChar preChar;
     QString infixExpression;//中缀表达式
     QList<QPair<QString, int>> postfix;
     QString postfixExpression;//后缀表达式
@@ -75,7 +74,7 @@ private:
     double result;
 
     QMap<QChar, int> op_precedence;
-
+    QList<int> usefulChar;
 };
 
 #endif // CALCULATOR_H
