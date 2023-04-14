@@ -36,6 +36,10 @@ private:
     bool isDidit(const QChar ch);
     void transform_infix_to_postfix();
 
+    void resetAllValue();       //每次计算后，重置isHasPoint和isHasOperator
+    void resetIsHasPoint();     //每次计算后，根据result重置isHasPoint
+    void printIsHasPoint();     //测试函数，正序输出isHasPoint
+
     MyLineEdit* inputLineEdit;
     MyLineEdit* displayLineEdit;
     QVBoxLayout* displayLayout;
@@ -64,17 +68,17 @@ private:
 
     QVBoxLayout* mainLayout;
 
-    bool isHasPoint;
-    bool isHasOperator;
-    QString infixExpression;//中缀表达式
-    QList<QPair<QString, int>> postfix; //后缀表达式，同时用int值记录该值是数字还是操作符
-    QString postfixExpression;//后缀表达式
+    QStack<bool> isHasPoint;    //每输入一个字符，都更新小数点的作用范围，主要用于backspace功能
+    bool isHasOperator;     //上一个字符是否是操作符，不包括小数点
+    QString infixExpression;    //中缀表达式
+    QList<QPair<QString, int>> postfix;     //后缀表达式，同时用int值记录该值是数字还是操作符
+    QString postfixExpression;  //后缀表达式
     QStack<double> numStack;    //数字存储栈
     QStack<QChar> operatorStack;    //操作符存储栈
     double result;
 
-    QMap<QChar, int> op_precedence;
-    QList<int> usefulChar;
+    QMap<QChar, int> op_precedence;     //存储操作符及其优先级，通过int值存储操作的优先级
+    QList<int> usefulChar;  //存储可从键盘获得的键值
 };
 
 #endif // CALCULATOR_H
