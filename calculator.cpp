@@ -217,6 +217,9 @@ void Calculator::inputChar(const QChar ch)
     if(infixExpression.isEmpty() || infixExpression == "0")
     {
         setFirstChar(ch);
+        //printIsHasPoint();
+        //qDebug() << "infixexpression:" << infixExpression;
+        inputLineEdit->setText(infixExpression);
         return;
     }
 
@@ -226,16 +229,15 @@ void Calculator::inputChar(const QChar ch)
         //最新输入为数字，加入中缀表达式；否则，更新操作符
         if(isDidit(ch))
         {
-            infixExpression += ch;
-            isHasOperator = false;
             isHasPoint.push(false);
+            isHasOperator = false;
         }
         else if(ch == '.')
         {
             bool isHasPoint_top = isHasPoint.top();
             isHasPoint.pop();
 
-            if(isHasPoint.top())
+            if(!isHasPoint.empty() && isHasPoint.top())
             {
                 isHasPoint.push(isHasPoint_top);
                 return;
@@ -243,8 +245,6 @@ void Calculator::inputChar(const QChar ch)
             else
             {
                 infixExpression.chop(1);
-                isHasPoint.pop();
-                infixExpression += ch;
                 isHasPoint.push(true);
                 isHasOperator = false;
             }
@@ -252,7 +252,7 @@ void Calculator::inputChar(const QChar ch)
         else
         {
             infixExpression.chop(1);
-            infixExpression += ch;
+            isHasPoint.push(false);
         }
     }
     //如果上一个字符是数字或小数点，则如下：
@@ -260,13 +260,11 @@ void Calculator::inputChar(const QChar ch)
     {
         if(isDidit(ch))
         {
-            infixExpression += ch;
-            isHasOperator = false;
             isHasPoint.push(isHasPoint.top());
+            isHasOperator = false;
         }
         else if(ch == '.' && !isHasPoint.top())
         {
-            infixExpression += ch;
             isHasPoint.push(true);
             isHasOperator = false;
         }
@@ -280,47 +278,54 @@ void Calculator::inputChar(const QChar ch)
             isHasPoint.pop();
             isHasPoint.push(false);
             isHasOperator = true;
-            infixExpression += ch;
         }
         else
         {
-            infixExpression += ch;
             isHasPoint.push(false);
             isHasOperator = true;
         }
     }
-    printIsHasPoint();
+    infixExpression += ch;
+    //printIsHasPoint();
+    //qDebug() << "infixexpression:" << infixExpression;
     inputLineEdit->setText(infixExpression);
 }
 
 void Calculator::setFirstChar(const QChar ch)
 {
     isHasPoint.clear();
+    isHasOperator = false;
 
     if(isDidit(ch))
     {
         if(ch == '0')
-            return;
-
-        if(infixExpression == "0")
         {
-            infixExpression.clear();
+
+            isHasPoint.push(false);
+            return;
         }
-        isHasPoint.push(false);
-        isHasOperator = false;
-        infixExpression += ch;
+        else
+        {
+            isHasPoint.push(false);
+            infixExpression = ch;
+            return;
+        }
     }
     else
     {
         if(ch == '.')
         {
+            isHasPoint.push(false);
             isHasPoint.push(true);
         }
-        isHasOperator = true;
-        infixExpression += ch;
+        else
+        {
+            isHasPoint.push(false);
+            isHasPoint.push(false);
+            isHasOperator = true;
+        }
     }
-    printIsHasPoint();
-    inputLineEdit->setText(infixExpression);
+    infixExpression += ch;
 }
 
 void Calculator::clearInputLineEdit()
@@ -336,47 +341,33 @@ void Calculator::backspaceInputLineEdit()
     if(infixExpression.length() <= 1)
     {
         infixExpression = "0";
+        isHasPoint.clear();
         inputLineEdit->setText(infixExpression);
-        printIsHasPoint();
+        //printIsHasPoint();
         return;
     }
 
-//    //如果当前字符是操作符
-//    if(isHasOperator)
-//    {
-//        isHasOperator = false;
-//        isHasPoint.pop();
-//        infixExpression.chop(1);
-//        inputLineEdit->setText(infixExpression);
-//        printIsHasPoint();
-//        return;
-//    }
+    if(infixExpression.length() == 2)
+    {
+        infixExpression.chop(1);
+        isHasPoint.pop();
+        isHasOperator = false;
+        inputLineEdit->setText(infixExpression);
+        //printIsHasPoint();
+        return;
+    }
 
-//    //如果当前字符是数字
-//    infixExpression.chop(1);
-//    if(!isDidit(infixExpression.back()))
-//    {
-//        isHasOperator = true;
-//        isHasPoint.pop();
-//    }
-
-    qDebug() << infixExpression;
     infixExpression.chop(1);
-    qDebug() << infixExpression;
     QChar ch = infixExpression.back();
-    qDebug() << ch;
     infixExpression.chop(1);
-    qDebug() << infixExpression;
     isHasPoint.pop();
     isHasPoint.pop();
-    printIsHasPoint();
-    if(!isDidit(infixExpression.back()))
+
+    if(!isDidit(infixExpression.back()) && infixExpression.back() != '.')
         isHasOperator = true;
     else
         isHasOperator = false;
     inputChar(ch);
-    qDebug() << infixExpression;
-    //inputLineEdit->setText(infixExpression);
 }
 
 bool Calculator::isDidit(const QChar ch)
@@ -475,7 +466,7 @@ void Calculator::printIsHasPoint()
             temp_string.push_front("0");
         temp_stack.pop();
     }
-    qDebug() << temp_string;
+    qDebug() << "isHasPoint:" << temp_string;
 }
 
 void Calculator::addButton(QPushButton *button, int row, int column)
